@@ -69,6 +69,35 @@ def generate_image():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+@app.route("/describe-image", methods=["POST"])
+def describe_image():
+  # Get image data from request (e.g., uploaded file)
+  image_data = request.files["image"]
 
+  # Define the prompt for describing the image
+  prompt = """Please provide a detailed description of the image, focusing on the following elements:
+
+  * Subject matter: What is the main focus of the image?
+  * Setting: Where does the image take place?
+  * Objects: What objects are present in the image?
+  * Colors: What are the dominant colors?
+  * Mood: What overall feeling or atmosphere does the image convey?
+
+  Please be as descriptive as possible and include any relevant details."""
+
+  # Use ollama to describe the image with the prompt
+  res = ollama.chat(
+      model="llava",
+      messages=[
+          {
+              "role": "user",
+              "content": prompt,  # Include the prompt in the message content
+              "images": [image_data],
+          }
+      ]
+  )
+
+  # Return the generated description as JSON
+  return {"description": res["message"]["content"]}
 if __name__ == '__main__':
     app.run(debug=True)
